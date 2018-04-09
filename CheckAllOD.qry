@@ -1,0 +1,297 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;	This routine queries objects in an "attached" drawing (not x-ref) and outputs several .txt files 
+;;;	in that drawing's folder, depending on which object data tables are being used in the attached drawing.
+(setq ade_cmddia_before_qry (getvar "cmddia"))
+(setvar "cmddia" 0)
+
+;;;	Add J drive alias (needed for "attaching" drawings).
+(ade_aliasadd "J" "J:")
+
+;;;	Prompt user to select a .dwg file to query.
+(setq dwg_name (getfiled "Select Drawing to Query" "J:/" "dwg" 0))
+
+;;;	"Attach" that .dwg, also set dwg_id variable for activating it
+(setq dwg_id (ade_dsattach dwg_name))
+
+;;;	Make sure the newly attached .dwg is activated. If another dwg has been attached and activated before 
+;;;	running this routine, this will deactivate the old one and activate the new one.
+(ade_dwgactivate dwg_id)
+
+;;;	Set dwg_path variable (used for the txt output file location)
+(setq dwg_path (vl-filename-directory dwg_name))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;	SAN MAIN
+;;;	Clear any existing queries
+(ade_qryclear)
+
+;;;	Set qryoutputfile variable, concatenate the string from dwg_name and the output filename
+(setq qryoutputfile (strcat dwg_path "\\qryout-sanpipe.txt"))
+
+;;;	Set query type. The 3rd argument is a string containing the fields that will be included in the txt 
+;;;	file. Format for object data is ":[fieldname]@[odtablename]". Also includes entity handle and 
+;;;	x, y, and z coordinates. 
+(ade_qrysettype "report" nil ".EHANDLE,:MAX_DEPTH@SAN_PIPE,:MIN_DEPTH@SAN_PIPE,:MATERIAL@SAN_PIPE,:MATERIAL_CLASS@SAN_PIPE,:BEDDING@SAN_PIPE,:TYPE@SAN_PIPE,:PIPE_SHAPE@SAN_PIPE,:PIPE_HEIGHT@SAN_PIPE,:LENGTH@SAN_PIPE,:UP_INVERT@SAN_PIPE,:DN_INVERT@SAN_PIPE,:WIDTH@SAN_PIPE,:SLOPE@SAN_PIPE,:INSTALLATION_DATE@SAN_PIPE,:CONSULTANT@SAN_PIPE,:ENGINEERING_NOTES@SAN_PIPE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+
+;;;	Query all objects on the layer indicated below.
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_SAN_MAIN")""))
+
+;;;	Execute the query as defined above. This will create the txt file. If no matching objects were found 
+;;;	(i.e. there were no objects on that layer), then the txt file is not created. 
+(ade_qryexecute)
+
+;;;	Every other query looks more or less like the one shown above, so the same comments apply
+;;;	to the rest of them (see below).
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;	SAN PLUG
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-sanplug.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@SAN_PLUG,:INSTALLATION_DATE@SAN_PLUG,:CONSULTANT@SAN_PLUG,:ENGINEERING_NOTES@SAN_PLUG,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_SAN_PLUG")""))
+(ade_qryexecute)
+
+;;;	SAN PUMPING STATION
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-sanpumpsta.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:NUMBER_OF_PUMPS@SAN_PUMPING_STATION,:GENERATOR@SAN_PUMPING_STATION,:INSTALLATION_DATE@SAN_PUMPING_STATION,:CONSULTANT@SAN_PUMPING_STATION,:ENGINEERING_NOTES@SAN_PUMPING_STATION,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_SAN_PUMPIN_STATION")""))
+(ade_qryexecute)
+
+;;;	SAN MH
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-sanmh.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:CATEGORY@SAN_MH,:DEPTH@SAN_MH,:COVER_SHAPE@SAN_MH,:COVER_TYPE@SAN_MH,:COVER_WIDTH@SAN_MH,:COVER_LENGTH@SAN_MH,:LOCK_TYPE@SAN_MH,:DROP_PIPE@SAN_MH,:DROP_DIAMETER@SAN_MH,:DROP_UP_INVERT@SAN_MH,:DROP_DOWN_INVERT@SAN_MH,:COVER_ELEVATION@SAN_MH,:RISER_TYPE@SAN_MH,:GROUND_WATER@SAN_MH,:ELECTRICAL@SAN_MH,:MAX_MH_WIDTH@SAN_MH,:INSTALLATION_DATE@SAN_MH,:CONSULTANT@SAN_MH,:ENGINEERING_NOTES@SAN_MH,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_SAN_MH")""))
+(ade_qryexecute)
+
+
+;;;	SAN SERVICE
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-sanserv.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@SAN_SERVICE,:DIAMETER@SAN_SERVICE,:PEAK_CALC_FLOW@SAN_SERVICE,:INSTALLATION_DATE@SAN_SERVICE,:CONSULTANT@SAN_SERVICE,:ENGINEERING_NOTES@SAN_SERVICE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_SAN_SERV")""))
+(ade_qryexecute)
+
+;;;	SIDEWALK
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\output\\sidewalk.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:TYPE@SIDEWALK,:WIDTH@SIDEWALK,:MATERIAL@SIDEWALK,:STAIRS@SIDEWALK,:RAILING@SIDEWALK,:BIKE_PATH@SIDEWALK,:INSTALLATION_DATE@SIDEWALK,:CONSULTANT@SIDEWALK,:ENGINEERING_NOTES@SIDEWALK,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_SW")""))
+(ade_qryexecute)
+
+;;;	STM CB
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmcb.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:CATEGORY@STM_CATCHBASIN,:DEPTH@STM_CATCHBASIN,:COVER_SHAPE@STM_CATCHBASIN,:COVER_TYPE@STM_CATCHBASIN,:COVER_WIDTH@STM_CATCHBASIN,:COVER_LENGTH@STM_CATCHBASIN,:LOCK_TYPE@STM_CATCHBASIN,:SUBDRAIN@STM_CATCHBASIN,:ELEVATION_TOP@STM_CATCHBASIN,:LEAD_INVERT@STM_CATCHBASIN,:SAFETY_DEVICE@STM_CATCHBASIN,:FLOW_CONTROL_DEVICE@STM_CATCHBASIN,:SUMP@STM_CATCHBASIN,:INSTALLATION_DATE@STM_CATCHBASIN,:CONSULTANT@STM_CATCHBASIN,:ENGINEERING_NOTES@STM_CATCHBASIN,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_CB")""))
+(ade_qryexecute)
+
+;;;	STM CB LEAD
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmcblead.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@STM_LEAD,:DIAMETER@STM_LEAD,:UP_INVERT@STM_LEAD,:DN_INVERT@STM_LEAD,:LENGTH@STM_LEAD,:INSTALLATION_DATE@STM_LEAD,:CONSULTANT@STM_LEAD,:ENGINEERING_NOTES@STM_LEAD,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_CB_LEAD")""))
+(ade_qryexecute)
+
+;;;	STM CULVERT BRIDGE
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmculvbridge.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@STM_CULVERT_BRIDGE,:HEIGHT@STM_CULVERT_BRIDGE,:DIAMETER@STM_CULVERT_BRIDGE,:OPENING_SHAPE@STM_CULVERT_BRIDGE,:FLOW_LENGTH@STM_CULVERT_BRIDGE,:UP_INVERT@STM_CULVERT_BRIDGE,:DN_INVERT@STM_CULVERT_BRIDGE,:INSTALLATION_DATE@STM_CULVERT_BRIDGE,:CONSULTANT@STM_CULVERT_BRIDGE,:ENGINEERING_NOTES@STM_CULVERT_BRIDGE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_CULVERT")""))
+(ade_qryexecute)
+
+;;;	STM FACILITY
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmfacility.txt"))
+(ade_qrysettype "report" nil 
+".EHANDLE,:SUBWATERSHED@STM_FACILITY,:HABITAT_PROTECTION_LEVEL@STM_FACILITY,:ADJACENT_LAND_USE@STM_FACILITY,:FENCED@STM_FACILITY,:QUANTITY_FACILITY@STM_FACILITY,:QUALITY_FACILITY@STM_FACILITY,:PERMANNET_POOL_TOTAL_VOLUME_M3@STM_FACILITY,:EXTENDED_DETENTION_ELEVATION_M3@STM_FACILITY,:EXTENDED_DETENTION_VOLUME_M3@STM_FACILITY,:DRAWDOWN_2YR_HRS@STM_FACILITY,:DRAWDOWN_5YR_HRS@STM_FACILITY,:DRAWDOWN_25YR_HRS@STM_FACILITY,:DRAWDOWN_100YR_HRS@STM_FACILITY,:DRAWDOWN_REGYN_HRS@STM_FACILITY,:REPORT_PUBLISHED_DATE@STM_FACILITY,:INSTALLATION_YEAR@STM_FACILITY,:CATCHMENT_AREA_HA@STM_FACILITY,:CATEGORY@STM_FACILITY,:CREEK_NAME@STM_FACILITY,:DESIGN_REPORT_AUTHOR@STM_FACILITY,:DESIGN_REPORT_NAME@STM_FACILITY,:DISCHARGES_INTO@STM_FACILITY,:ECA_REFERENCE_NUMBER@STM_FACILITY,:FACILITY_TYPE@STM_FACILITY,:INFILTRATION_FACILITY@STM_FACILITY,:REGISTERED_PLAN@STM_FACILITY,:STATUS@STM_FACILITY,:STM_FACILITY_REF_NO@STM_FACILITY,:STORM_EVENT_DESIGN_REQUIREMENT@STM_FACILITY,:ENG_NOTES@STM_FACILITY,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_FACILITY")""))
+(ade_qryexecute)
+
+;;;	STM FOREBAY
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmforebay.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:CATEGORY@STM_FOREBAY,:EMBANKMENT_TYPE@STM_FOREBAY,:LAST_CLEANOUT_YEAR@STM_FOREBAY,:LINER_TYPE@STM_FOREBAY,:FOREBAY_BOTTOM_ELEVATION_M@STM_FOREBAY,:PERMANENT_POOL_ELEVATION_M@STM_FOREBAY,:PERMANENT_POOL_VOLUME_M3@STM_FOREBAY,:SEDIMENT_REMOVAL_ELEVATION_M@STM_FOREBAY,:SEDIMENT_REMOVAL_FREQUENCY_YRS@STM_FOREBAY,:SEDIMENT_REMOVAL_VOLUME_M3@STM_FOREBAY,:STATUS@STM_FOREBAY,:ENG_NOTES@STM_FOREBAY,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_FOREBAY")""))
+(ade_qryexecute)
+
+;;;	STM INFILTRATION GALLERY
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stminfilgallery.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MODEL_DESC@STM_INFIL_GALLERY,:MAINTENANCE_DOC@STM_INFIL_GALLERY,:MAINTENANCE@STM_INFIL_GALLERY,:GROUNDWATER_SYSTEM@STM_INFIL_GALLERY,:INSTALLATION_DATE@STM_INFIL_GALLERY,:CONSULTANT@STM_INFIL_GALLERY,:ENGINEERING_NOTES@STM_INFIL_GALLERY,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_INFILTRATION_GALLERY")""))
+(ade_qryexecute)
+
+;;;	STM INLET
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stminlet.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:CATEGORY@STM_INLET,:SUBCATEGORY@STM_INLET,:FACILITY_TYPE@STM_INLET,:INVERT@STM_INLET,:FLOW_CONTROL_DEVICE@STM_INLET,:GRATE@STM_INLET,:EROSION_PROTECTION@STM_INLET,:HEADWALL_HEIGHT@STM_INLET,:HEADWALL_WIDTH@STM_INLET,:HEADWALL_MATERIAL@STM_INLET,:WINGWALL_HEIGHT@STM_INLET,:WINGWALL_WIDTH@STM_INLET,:WINGWALL_MATERIAL@STM_INLET,:INVERT@STM_INLET,:LOCK_TYPE@STM_INLET,:COVER_SHAPE@STM_INLET,:COVER_TYPE@STM_INLET,:COVER_WIDTH@STM_INLET,:DEPTH@STM_INLET,:ELEVATION_TOP@STM_INLET,:INLET_SHAPE@STM_INLET,:PIPE_SHAPE@STM_INLET,:PIPE_SIZE@STM_INLET,:DEPTH@STM_INLET,:WIDTH@STM_INLET,:GROUNDWATER_SYSTEM@STM_INLET,:OWNERSHIP@STM_INLET,:INSTALLATION_DATE@STM_INLET,:CONSULTANT@STM_INLET,:ENGINEERING_NOTES@STM_INLET,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_INLET")""))
+(ade_qryexecute)
+
+;;;	STM MAIN POND
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmmainpond.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:CATEGORY@STM_MAIN_POND,:LAST_CLEANOUT_YEAR@STM_MAIN_POND,:LINER_TYPE@STM_MAIN_POND,:MAIN_POND_BOTTOM_ELEVATION_M@STM_MAIN_POND,:PERMANENT_POOL_ELEVATION_M@STM_MAIN_POND,:PERMANENT_POOL_VOLUME_M3@STM_MAIN_POND,:PLUNGE_POOL@STM_MAIN_POND,:SEDIMENT_REMOVAL_ELEVATION_M@STM_MAIN_POND,:SEDIMENT_REMOVAL_FREQUENCY_YRS@STM_MAIN_POND,:SEDIMENT_REMOVAL_VOLUME_M3@STM_MAIN_POND,:STATUS@STM_MAIN_POND,:ENG_NOTES@STM_MAIN_POND,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_MAIN_POND")""))
+(ade_qryexecute)
+
+;;;	STM MH
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmmh.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:CATEGORY@STM_MANHOLE,:DEPTH@STM_MANHOLE,:COVER_SHAPE@STM_MANHOLE,:COVER_TYPE@STM_MANHOLE,:COVER_WIDTH@STM_MANHOLE,:COVER_LENGTH@STM_MANHOLE,:LOCK_TYPE@STM_MANHOLE,:SUBDRAIN@STM_MANHOLE,:COVER_ELEVATION@STM_MANHOLE,:RISER_TYPE@STM_MANHOLE,:GROUNDWATER_SYSTEM@STM_MANHOLE,:SUMP@STM_MANHOLE,:SPLITTER@STM_MANHOLE,:INSTALLATION_DATE@STM_MANHOLE,:CONSULTANT@STM_MANHOLE,:ENGINEERING_NOTES@STM_MANHOLE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_MH")""))
+(ade_qryexecute)
+
+;;;	STM OGS
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmogs.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MODEL@STM_OGS,:MAKE@STM_OGS,:DRAINAGE_AREA@STM_OGS,:SUMP_MM@STM_OGS,:OWNERSHIP@STM_OGS,:OGS_MAIN_MONTHS@STM_OGS,:CATEGORY@STM_OGS,:CLASS@STM_OGS,:NUMBER_MH@STM_OGS,:MAINTENANCE@STM_OGS,:INSTALLATION_DATE@STM_OGS,:CONSULTANT@STM_OGS,:ENGINEERING_NOTES@STM_OGS,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_OGS")""))
+(ade_qryexecute)
+
+;;;	STM OUTLET
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmoutlet.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:CATEGORY@STM_OUTLET,:OUTLET_SHAPE@STM_OUTLET,:FACILITY_TYPE@STM_OUTLET,:OUTLET_SHAPE@STM_OUTLET,:ENERGY_DISSIPATION@STM_OUTLET,:GRATE@STM_OUTLET,:GRATE_LOCK_TYPE@STM_OUTLET,:EROSION_PROTECTION@STM_OUTLET,:TYPE@STM_OUTLET,:ENDWALL_HEIGHT@STM_OUTLET,:ENDWALL_WIDTH@STM_OUTLET,:ENDWALL_MATERIAL@STM_OUTLET,:WINGWALL_HEIGHT@STM_OUTLET,:WINGWALL_WIDTH@STM_OUTLET,:WINGWALL_MATERIAL@STM_OUTLET,:INVERT@STM_OUTLET,:LOCK_TYPE@STM_OUTLET,:COVER_SHAPE@STM_OUTLET,:COVER_TYPE@STM_OUTLET,:COVER_WIDTH@STM_OUTLET,:DEPTH@STM_OUTLET,:ELEVATION_TOP@STM_OUTLET,:INLET_SHAPE@STM_OUTLET,:PIPE_SHAPE@STM_OUTLET,:PIPE_SIZE@STM_OUTLET,:HEIGHT@STM_OUTLET,:WIDTH@STM_OUTLET,:GROUNDWATER_SYSTEM@STM_OUTLET,:OWNERSHIP@STM_OUTLET,:INSTALLATION_DATE@STM_OUTLET,:CONSULTANT@STM_OUTLET,:ENGINEERING_NOTES@STM_OUTLET,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_OUTLET")""))
+(ade_qryexecute)
+
+;;;	STM PIPE
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmpipe.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MAX_DEPTH@STM_PIPE,:MIN_DEPTH@STM_PIPE,:MATERIAL@STM_PIPE,:MATERIAL_CLASS@STM_PIPE,:BEDDING@STM_PIPE,:CATEGORY@STM_PIPE,:PIPE_SHAPE@STM_PIPE,:HEIGHT@STM_PIPE,:LENGTH@STM_PIPE,:UP_INVERT@STM_PIPE,:DN_INVERT@STM_PIPE,:WIDTH@STM_PIPE,:SLOPE@STM_PIPE,:GROUNDWATER_SYSTEM@STM_PIPE,:COOLING_TRENCH@STM_PIPE,:OWNERSHIP@STM_PIPE,:SUBCATEGORY@STM_PIPE,:INSTALLATION_DATE@STM_PIPE,:CONSULTANT@STM_PIPE,:ENGINEERING_NOTES@STM_PIPE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_MAIN")""))
+(ade_qryexecute)
+
+;;;	STM PLUG
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmplug.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@STM_PLUG,:GROUNDWATER_SYSTEM@STM_PLUG,:INSTALLATION_DATE@STM_PLUG,:CONSULTANT@STM_PLUG,:ENGINEERING_NOTES@STM_PLUG,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_PLUG")""))
+(ade_qryexecute)
+
+;;;	STM SERV
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-stmserv.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@STM_SERVICE_PIPE,:DIAMETER@STM_SERVICE_PIPE,:GROUNDWATER_SYSTEM@STM_SERVICE_PIPE,:INSTALLATION_DATE@STM_SERVICE_PIPE,:CONSULTANT@STM_SERVICE_PIPE,:ENGINEERING_NOTES@STM_SERVICE_PIPE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_STM_SERV")""))
+(ade_qryexecute)
+
+;;;	WAT ANODE
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-watanode.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@WAT_ANODE,:SIZE@WAT_ANODE,:INSTALLATION_DATE@WAT_ANODE,:CONSULTANT@WAT_ANODE,:ENGINEERING_NOTES@WAT_ANODE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_ANODE")""))
+(ade_qryexecute)
+
+;;;	WAT CASING
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-watcasing.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:MATERIAL@WAT_CASING,:SIZE@WAT_CASING,:INSTALLATION_DATE@WAT_CASING,:CONSULTANT@WAT_CASING,:ENGINEERING_NOTES@WAT_CASING,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_CASING")""))
+(ade_qryexecute)
+
+;;;	WAT CHAMBER
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-watchamber.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:INSTALLATION_DATE@WAT_CHAMBER,:CONSULTANT@WAT_CHAMBER,:ENGINEERING_NOTES@WAT_CHAMBER,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_CHAMBER")""))
+(ade_qryexecute)
+
+;;;	WAT HYDRANT
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-wathydrant.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:OWNERSHIP@WAT_HYDRANT,:MAKE@WAT_HYDRANT,:MODEL@WAT_HYDRANT,:CONNECTION_TYPE@WAT_HYDRANT,:BEND@WAT_HYDRANT,:PLUGGED@WAT_HYDRANT,:VALVE_EXISTS@WAT_HYDRANT,:INSTALLATION_DATE@WAT_HYDRANT,:CONSULTANT@WAT_HYDRANT,:ENGINEERING_NOTES@WAT_HYDRANT,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_HYD")""))
+(ade_qryexecute)
+
+;;;	WAT MAIN
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-watmain.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:OWNERSHIP@WAT_MAIN,:DIAMETER@WAT_MAIN,:MATERIAL@WAT_MAIN,:OVERSIZED_DIAMETER@WAT_MAIN,:INSTALLATION_DATE@WAT_MAIN,:CONSULTANT@WAT_MAIN,:ENGINEERING_NOTES@WAT_MAIN,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_MAIN")""))
+(ade_qryexecute)
+
+;;;	WAT OTHER
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-watother.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:TYPE@WAT_OTHER,:INSTALLATION_DATE@WAT_OTHER,:CONSULTANT@WAT_OTHER,:ENGINEERING_NOTES@WAT_OTHER,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_OTHER")""))
+(ade_qryexecute)
+
+;;;	WAT SERVICE VALVE
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-watservvalve.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:TYPE@WAT_SERVICE_VALVE,:DIAMETER@WAT_SERVICE_VALVE,:INSTALLATION_DATE@WAT_SERVICE_VALVE,:CONSULTANT@WAT_SERVICE_VALVE,:ENGINEERING_NOTES@WAT_SERVICE_VALVE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_SERV_VALVE")""))
+(ade_qryexecute)
+
+;;;	WAT VALVE
+(ade_qryclear)
+(setq qryoutputfile (strcat dwg_path "\\qryout-watvalve.txt"))
+(ade_qrysettype "report" nil ".EHANDLE,:TYPE@WAT_VALVE,:FUNCTION@WAT_VALVE,:SIZE@WAT_VALVE,:MANUFACTURER@WAT_VALVE,:HOUSING@WAT_VALVE,:OWNERSHIP@WAT_VALVE,:FLOW_CONTROL@WAT_VALVE,:INSTALLATION_DATE@WAT_VALVE,:CONSULTANT@WAT_VALVE,:ENGINEERING_NOTES@WAT_VALVE,.X1,.Y1,.Z1" qryoutputfile)
+(ade_qrysetreptransform nil)
+(ade_qrydefine '("" "" "" "Location" ("all" )""))
+(ade_qrydefine '("AND" "" "" "Property" ("layer" "=" "PR_WAT_VALVE")""))
+(ade_qryexecute)
+
+(setvar "cmddia" ade_cmddia_before_qry)
