@@ -3,7 +3,7 @@
 
 **OR**
 
-- Click "Clone or Download" and select "Download ZIP" (this option downloads all files within the master branch of this git, as shown above)
+- Click "Clone or Download" and select "Download ZIP" (this option downloads all files within the master branch of this repository, as shown above)
 
 ---
 ### More info
