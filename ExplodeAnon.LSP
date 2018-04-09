@@ -21,8 +21,11 @@
 ;;;SOFTWARE.
 
 (defun c:explodeanon ( / ss qaf )
-;;;This function explodes all anonymous blocks in a drawing.
-;;;If a block in the drawing has a name beginning with "*U", then it is exploded.
+;;;This command explodes all anonymous blocks (a.k.a. "unnamed" blocks) in a 
+;;;drawing. 
+;;;
+;;;If a block in the drawing has a name beginning with "*U", then it is exploded, 
+;;;since all anonymous blocks begin with "*U" followed by a number.
   
   (setq qaf (getvar 'QAFLAGS))
   (setvar 'QAFLAGS 5)
